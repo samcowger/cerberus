@@ -34,7 +34,7 @@ module SymSet = Set.Make(Sym)
 module SymMap = Map.Make(Sym)
 module IdMap = Map.Make(Id)
 open Print
-open Cn
+open CF.Cn
 open Resultat
 open Effectful.Make(Resultat)
 open AilSyntax
@@ -932,7 +932,7 @@ type identifier_env = Annot.identifier_env
 
 let make_largs f_i =
   let rec aux env st = function
-    | (Cn.CN_cletResource (loc, name, resource) :: conditions) ->
+    | (CF.Cn.CN_cletResource (loc, name, resource) :: conditions) ->
        let@ (pt_ret, oa_bt), lcs, pointee_values =
          C.LocalState.handle st
            (C.ET.translate_cn_let_resource env (loc, name, resource))
@@ -942,14 +942,14 @@ let make_largs f_i =
        let@ lat = aux env st (conditions) in
        return (Mu.mResource ((name, (pt_ret, SBT.to_basetype oa_bt)), (loc, None))
                  (Mu.mConstraints lcs lat))
-    | (Cn.CN_cletExpr (loc, name, expr) :: conditions) ->
+    | (CF.Cn.CN_cletExpr (loc, name, expr) :: conditions) ->
        let@ expr =
          C.LocalState.handle st
            (C.ET.translate_cn_expr SymSet.empty env expr)
        in
        let@ lat = aux (C.add_logical name (IT.bt expr) env) st (conditions) in
        return (Mu.mDefine ((name, IT.term_of_sterm expr), (loc, None)) lat)
-    | (Cn.CN_cconstr (loc, constr) :: conditions) ->
+    | (CF.Cn.CN_cconstr (loc, constr) :: conditions) ->
        let@ lc =
          C.LocalState.handle st
            (C.ET.translate_cn_assrt env (loc, constr))
@@ -1096,20 +1096,20 @@ let desugar_access d_st global_types (loc, id) =
 
 
 let desugar_cond d_st = function
-  | Cn.CN_cletResource (loc, id, res) ->
+  | CF.Cn.CN_cletResource (loc, id, res) ->
     Print.debug 6 (lazy (Print.typ (Print.string "desugaring a let-resource at") (Locations.pp loc)));
     let@ res = do_ail_desugar_rdonly d_st (CA.desugar_cn_resource res) in
     let@ (sym, d_st) = register_new_cn_local id d_st in
-    return (Cn.CN_cletResource (loc, sym, res), d_st)
-  | Cn.CN_cletExpr (loc, id, expr) ->
+    return (CF.Cn.CN_cletResource (loc, sym, res), d_st)
+  | CF.Cn.CN_cletExpr (loc, id, expr) ->
     Print.debug 6 (lazy (Print.typ (Print.string "desugaring a let-expr at") (Locations.pp loc)));
     let@ expr = do_ail_desugar_rdonly d_st (CA.desugar_cn_expr expr) in
     let@ (sym, d_st) = register_new_cn_local id d_st in
-    return (Cn.CN_cletExpr (loc, sym, expr), d_st)
-  | Cn.CN_cconstr (loc, constr) ->
+    return (CF.Cn.CN_cletExpr (loc, sym, expr), d_st)
+  | CF.Cn.CN_cconstr (loc, constr) ->
     Print.debug 6 (lazy (Print.typ (Print.string "desugaring a constraint at") (Locations.pp loc)));
     let@ constr = do_ail_desugar_rdonly d_st (CA.desugar_cn_assertion constr) in
-    return (Cn.CN_cconstr (loc, constr), d_st)
+    return (CF.Cn.CN_cconstr (loc, constr), d_st)
 
 let desugar_conds d_st conds =
   let@ (conds, d_st) = ListM.fold_leftM (fun (conds, d_st) cond ->
