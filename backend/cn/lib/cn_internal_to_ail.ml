@@ -565,7 +565,7 @@ let generate_ownership_function ?(with_ownership_checking=false) ctype =
 (* ocaml_frontend/generated/ailSyntax.ml *)
 (* TODO: Use mu_datatypes from Mucore program instead of cn_datatypes *)
 let rec cn_to_ail_expr_aux_internal 
-: type a. (_ option) -> (_ option) -> (_ Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
+: type a. (_ option) -> (_ option) -> (_ CF.Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
 = fun const_prop pred_name dts globals (IT (term_, basetype, loc)) d ->
   match term_ with
   | Const const ->
@@ -1038,12 +1038,12 @@ let rec cn_to_ail_expr_aux_internal
 
 
 let cn_to_ail_expr_internal
-  : type a. (_ Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
+  : type a. (_ CF.Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
   = fun dts globals cn_expr d ->
     cn_to_ail_expr_aux_internal None None dts globals cn_expr d
 
 let cn_to_ail_expr_internal_with_pred_name
-  : type a. (Sym.sym option) -> (_ Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
+  : type a. (Sym.sym option) -> (_ CF.Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> IT.t -> a dest -> a
     = fun pred_name_opt dts globals cn_expr d ->
       cn_to_ail_expr_aux_internal None pred_name_opt dts globals cn_expr d    
 
@@ -1438,7 +1438,7 @@ let cn_to_ail_resource_internal ?(is_pre=true) ?(is_toplevel=true) sym dts globa
 
     (b1 @ b2 @ b3 @ [start_binding] @ bs' @ bs, s1 @ s2 @ s3 @ ss @ ss', owned_ctype)
 
-let cn_to_ail_logical_constraint_internal : type a. (_ Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> a dest -> LC.logical_constraint -> a
+let cn_to_ail_logical_constraint_internal : type a. (_ CF.Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> a dest -> LC.logical_constraint -> a
   = fun dts globals d lc -> 
       match lc with
         | LogicalConstraints.T it -> 
@@ -1514,7 +1514,7 @@ let cn_to_ail_function_internal (fn_sym, (lf_def : LogicalFunctions.definition))
   let params = params @ [(error_msg_info_sym, C.mk_ctype_pointer empty_qualifiers error_msg_info_ctype)] in
   let (param_syms, param_types) = List.split params in
   let param_types = List.map (fun t -> (empty_qualifiers, t, false)) param_types in
-  let matched_cn_functions = List.filter (fun (cn_fun : (A.ail_identifier, C.ctype) Cn.cn_function) -> String.equal (Sym.pp_string cn_fun.cn_func_name) (Sym.pp_string fn_sym)) cn_functions in
+  let matched_cn_functions = List.filter (fun (cn_fun : (A.ail_identifier, C.ctype) CF.Cn.cn_function) -> String.equal (Sym.pp_string cn_fun.cn_func_name) (Sym.pp_string fn_sym)) cn_functions in
   (* Unsafe - check if list has an element *)
   let loc = (List.nth matched_cn_functions 0).cn_func_magic_loc in 
   (* Generating function declaration *)
@@ -1605,7 +1605,7 @@ let cn_to_ail_predicate_internal (pred_sym, (rp_def : ResourcePredicates.definit
   (* Generating function definition *)
   let def = (pred_sym, (rp_def.loc, 0, empty_attributes, param_syms, mk_stmt A.(AilSblock (bs, pred_body)))) in
 
-  let matched_cn_preds = List.filter (fun (cn_pred : (A.ail_identifier, C.ctype) Cn.cn_predicate) -> String.equal (Sym.pp_string cn_pred.cn_pred_name) (Sym.pp_string pred_sym)) cn_preds in
+  let matched_cn_preds = List.filter (fun (cn_pred : (A.ail_identifier, C.ctype) CF.Cn.cn_predicate) -> String.equal (Sym.pp_string cn_pred.cn_pred_name) (Sym.pp_string pred_sym)) cn_preds in
   (* Unsafe - check if list has an element *)
   let loc = (List.nth matched_cn_preds 0).cn_pred_magic_loc in 
   (((loc, decl), def), ail_record_opt, ownership_ctypes')
@@ -1664,7 +1664,7 @@ let cn_to_ail_post_internal dts globals ownership_ctypes preds (RT.Computational
   (bs, List.map mk_stmt ss, ownership_ctypes')
 
 (* TODO: Add destination passing *)
-let cn_to_ail_cnstatement_internal : type a. (_ Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> a dest -> Cnprog.cn_statement -> (a * bool)
+let cn_to_ail_cnstatement_internal : type a. (_ CF.Cn.cn_datatype) list -> (C.union_tag * C.ctype) list -> a dest -> Cnprog.cn_statement -> (a * bool)
 = fun dts globals d cnstatement ->
   let default_res_for_dest = empty_for_dest d in
   match cnstatement with

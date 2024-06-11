@@ -1,8 +1,29 @@
-open Builtins
+(* open Cn.Builtins *)
 module CF=Cerb_frontend
 module CB=Cerb_backend
 open CB.Pipeline
-open Setup
+
+module Cn = Cn
+module Builtins = Cn.Builtins
+module Check = Cn.Check
+module Context = Cn.Context
+module Core_to_mucore = Cn.Core_to_mucore
+module CStatements = Cn.CStatements
+module Diagnostics = Cn.Diagnostics
+module Executable_spec = Cn.Executable_spec
+module IndexTerms = Cn.IndexTerms
+module Locations = Cn.Locations
+module Mucore = Cn.Mucore
+module Pp = Cn.Pp
+module Pp_mucore = Cn.Pp_mucore
+module Resultat = Cn.Resultat
+module Setup = Cn.Setup
+module Solver = Cn.Solver
+module Source_injection = Cn.Source_injection
+module Sym = Cn.Sym
+module TypeErrors = Cn.TypeErrors
+module Typing = Cn.Typing
+module WellTyped = Cn.WellTyped
 
 module A=CF.AilSyntax
 
@@ -59,6 +80,7 @@ open Log
 
 
 let frontend ~macros ~incl_dirs ~incl_files astprints ~do_peval ~filename ~magic_comment_char_dollar =
+  let builtin_fun_names = Builtins.cn_builtin_fun_names in
   let open CF in
   Cerb_global.set_cerb_conf
     ~backend_name:"Cn"
@@ -76,9 +98,9 @@ let frontend ~macros ~incl_dirs ~incl_files astprints ~do_peval ~filename ~magic
      @ (if magic_comment_char_dollar then ["magic_comment_char_dollar"] else []));
   Core_peval.config_unfold_stdlib := Sym.has_id_with Setup.unfold_stdlib_name;
   let@ stdlib = load_core_stdlib () in
-  let@ impl = load_core_impl stdlib impl_name in
+  let@ impl = load_core_impl stdlib Setup.impl_name in
   let conf = Setup.conf macros incl_dirs incl_files astprints in
-  let@ (_, ail_prog_opt, prog0) = c_frontend_and_elaboration ~cnnames:cn_builtin_fun_names (conf, io) (stdlib, impl) ~filename in
+  let@ (_, ail_prog_opt, prog0) = c_frontend_and_elaboration ~cnnames:builtin_fun_names (conf, Setup.io) (stdlib, impl) ~filename in
   let@ () =  begin
     if conf.typecheck_core then
       let@ _ = Core_typing.typecheck_program prog0 in return ()

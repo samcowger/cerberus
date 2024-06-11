@@ -1,0 +1,21 @@
+(executable
+ (name main)
+ (public_name cn)
+ (flags
+  (:standard -w -37 -w -27 -open Monomorphic.Int))
+ (modes exe)
+ (package cn)
+ (libraries
+  cmdliner
+  cn
+  str
+  unix
+  z3
+  monomorphic
+  result
+  cerb_frontend
+  cerb_backend
+  mem_concrete
+  menhirLib
+  cerb_util
+  ocamlgraph))
